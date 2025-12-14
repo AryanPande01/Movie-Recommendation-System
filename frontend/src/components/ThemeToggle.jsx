@@ -22,12 +22,15 @@ export default function ThemeToggle() {
     const isDarkNow = document.documentElement.classList.toggle("dark");
     setIsDark(isDarkNow);
     localStorage.setItem("theme", isDarkNow ? "dark" : "light");
+    
+    // Force a re-render by updating state
+    setIsDark(isDarkNow);
   };
 
   return (
     <button
       onClick={toggleTheme}
-      className="px-3 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-white transition-colors"
+      className="px-3 py-2 rounded-lg bg-zinc-800 dark:bg-gray-200 hover:bg-zinc-700 dark:hover:bg-gray-300 text-white dark:text-gray-900 transition-colors"
       title={isDark ? "Switch to light mode" : "Switch to dark mode"}
       aria-label="Toggle theme"
     >

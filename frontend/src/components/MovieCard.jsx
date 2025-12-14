@@ -22,7 +22,7 @@ export default function MovieCard({ movie, reason, onClick }) {
   return (
     <div
       onClick={onClick}
-      className="cursor-pointer bg-gradient-to-b from-zinc-800 to-zinc-900 rounded-lg overflow-hidden shadow-2xl hover:scale-[1.03] transform transition-all duration-200 border border-zinc-700 hover:border-red-500/50 group"
+      className="cursor-pointer bg-gradient-to-b from-zinc-800 to-zinc-900 dark:from-gray-100 dark:to-gray-200 rounded-lg overflow-hidden shadow-2xl hover:scale-[1.03] transform transition-all duration-200 border border-zinc-700 dark:border-gray-300 hover:border-red-500/50 group"
     >
       <div className="relative">
         <img
@@ -39,7 +39,7 @@ export default function MovieCard({ movie, reason, onClick }) {
             {providers.slice(0, 3).map((p, i) => (
               <span
                 key={i}
-                className="bg-black/80 backdrop-blur-sm text-xs px-2 py-1 rounded text-white border border-white/20"
+                className="bg-black/80 dark:bg-white/90 backdrop-blur-sm text-xs px-2 py-1 rounded text-white dark:text-gray-900 border border-white/20 dark:border-gray-300"
               >
                 {p}
               </span>
@@ -47,36 +47,36 @@ export default function MovieCard({ movie, reason, onClick }) {
           </div>
         )}
         {movie.runtime && (
-          <div className="absolute top-3 right-3 bg-black/80 backdrop-blur-sm text-xs px-2 py-1 rounded text-white">
+          <div className="absolute top-3 right-3 bg-black/80 dark:bg-white/90 backdrop-blur-sm text-xs px-2 py-1 rounded text-white dark:text-gray-900">
             {movie.runtime} min
           </div>
         )}
       </div>
 
       <div className="p-4">
-        <h2 className="text-lg font-semibold text-white truncate mb-1">
+        <h2 className="text-lg font-semibold text-white dark:text-gray-900 truncate mb-1">
           {title}
         </h2>
         {metaLine && (
-          <p className="text-sm text-gray-400 truncate mb-2">{metaLine}</p>
+          <p className="text-sm text-gray-400 dark:text-gray-600 truncate mb-2">{metaLine}</p>
         )}
 
         {overview && (
-          <p className="text-sm text-gray-300 mt-3 line-clamp-3 leading-relaxed">
+          <p className="text-sm text-gray-300 dark:text-gray-700 mt-3 line-clamp-3 leading-relaxed">
             {overview}
           </p>
         )}
 
         <div className="flex items-center justify-between mt-4">
           {reason ? (
-            <p className="text-xs text-blue-400 line-clamp-1 flex-1 mr-2">
+            <p className="text-xs text-blue-400 dark:text-blue-600 line-clamp-1 flex-1 mr-2">
               {reason}
             </p>
           ) : (
             <div />
           )}
           {movie.rating && (
-            <div className="flex items-center gap-1 text-xs text-yellow-400">
+            <div className="flex items-center gap-1 text-xs text-yellow-400 dark:text-yellow-600">
               <span>⭐</span>
               <span>{movie.rating.toFixed(1)}</span>
             </div>

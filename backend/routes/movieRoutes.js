@@ -20,7 +20,6 @@ const LANG = {
 
 // Genre name to TMDB ID mapping
 const GENRE_MAP = {
-  // Movies
   action: 28,
   adventure: 12,
   animation: 16,
@@ -51,10 +50,22 @@ const PROVIDER_MAP = {
   amazon: 9,
   disney: 337,
   "disney+": 337,
+  disneyplus: 337,
   hotstar: 337,
   hulu: 15,
   "hbo max": 384,
   hbomax: 384,
+  "hbo": 384,
+  "paramount+": 531,
+  paramount: 531,
+  paramountplus: 531,
+  "apple tv+": 350,
+  appletv: 350,
+  "apple tv": 350,
+  peacock: 386,
+  "peacock tv": 386,
+  "crunchyroll": 283,
+  crunchyroll: 283,
 };
 
 const PROVIDER_NAME_MAP = {
@@ -63,6 +74,10 @@ const PROVIDER_NAME_MAP = {
   337: "Disney+",
   15: "Hulu",
   384: "HBO Max",
+  531: "Paramount+",
+  350: "Apple TV+",
+  386: "Peacock",
+  283: "Crunchyroll",
 };
 
 const tmdb = async (url, params = {}) => {
@@ -97,19 +112,49 @@ async function getGenreId(mediaType, genreName) {
   }
 }
 
+// Helper to fetch multiple pages
+async function fetchMultiplePages(mediaType, params, maxPages = 5) {
+  const allResults = [];
+  
+  for (let page = 1; page <= maxPages; page++) {
+    try {
+      const pageParams = { ...params, page: String(page) };
+      const response = await tmdb(`/discover/${mediaType}`, pageParams);
+      if (response.results && response.results.length > 0) {
+        allResults.push(...response.results);
+      } else {
+        break; // No more results
+      }
+    } catch (e) {
+      console.error(`Error fetching page ${page}:`, e.message);
+      break;
+    }
+  }
+  
+  return allResults;
+}
+
 /* ================= RECOMMEND ================= */
 router.post("/recommend", protect, async (req, res) => {
   try {
     const { category, language, genre, region = "US" } = req.body;
 
+    // Handle podcast - not available in TMDB
     if (category === "podcast") {
-      return res.json({ results: [] });
+      return res.json({ 
+        results: [],
+        message: "Podcasts coming soon to this platform"
+      });
     }
 
-    const mediaType =
-      category === "series" || category === "tv" || category === "webseries"
-        ? "tv"
-        : "movie";
+    // Map category to mediaType
+    let mediaType = "movie";
+    if (category === "series" || category === "tv" || category === "webseries") {
+      mediaType = "tv";
+    } else if (category === "documentary") {
+      // Documentaries can be movies or TV shows
+      mediaType = "movie"; // Start with movies, can expand later
+    }
 
     const langCode = LANG[(language || "").toLowerCase()] || undefined;
     const genreId = await getGenreId(mediaType, genre);
@@ -117,7 +162,6 @@ router.post("/recommend", protect, async (req, res) => {
     const discoverParams = {
       language: "en-US",
       sort_by: "popularity.desc",
-      page: 1,
     };
 
     if (genreId) {
@@ -127,14 +171,20 @@ router.post("/recommend", protect, async (req, res) => {
       discoverParams.with_original_language = langCode;
     }
 
-    const discover = await tmdb(`/discover/${mediaType}`, discoverParams);
-    const results = discover.results || [];
+    // Fetch multiple pages for more results
+    const allResults = await fetchMultiplePages(mediaType, discoverParams, 5);
+    
+    // Take top 60 results for enrichment
+    const top = allResults.slice(0, 60);
 
-    // Enrich top results with details
-    const top = results.slice(0, 20);
-
+    // Enrich results with details (batch process to avoid rate limits)
     const detailed = await Promise.all(
-      top.map(async (item) => {
+      top.map(async (item, index) => {
+        // Add small delay to avoid rate limiting
+        if (index > 0 && index % 10 === 0) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+        
         try {
           const d = await tmdb(`/${mediaType}/${item.id}`, {
             append_to_response: "credits,watch/providers",
@@ -191,6 +241,7 @@ router.post("/recommend", protect, async (req, res) => {
             providers: Array.from(new Set(providerList)),
             genres,
             popularity: d.popularity || 0,
+            rating: d.vote_average || 0,
             reason: `Recommended because ${reasons.join(", ")}`,
             releaseDate: d.release_date || d.first_air_date || null,
           };
@@ -221,7 +272,7 @@ router.post("/recommend", protect, async (req, res) => {
       await History.create({
         userId: req.user.id,
         filters: { category, language, genre, region },
-        results: final.slice(0, 12),
+        results: final.slice(0, 20),
       });
     } catch (e) {
       console.warn("Could not save history:", e.message);
@@ -303,7 +354,7 @@ router.get("/browse", async (req, res) => {
     const discover = await tmdb(`/discover/${mediaType}`, params);
 
     res.json({
-      results: (discover.results || []).slice(0, 40).map((m) => ({
+      results: (discover.results || []).map((m) => ({
         id: m.id,
         mediaType,
         title: m.title || m.name,
@@ -325,11 +376,15 @@ router.get("/browse", async (req, res) => {
 /* ================= PROVIDER ================= */
 router.get("/provider/:name", async (req, res) => {
   try {
-    const rawName = req.params.name.toLowerCase();
+    const rawName = req.params.name.toLowerCase().trim();
     const providerId = PROVIDER_MAP[rawName];
     
     if (!providerId) {
-      return res.json({ categorized: {}, results: [] });
+      return res.json({ 
+        categorized: {}, 
+        results: [],
+        message: `Content for ${req.params.name} coming soon`
+      });
     }
 
     const { category = "movie", region = "US" } = req.query;
@@ -338,17 +393,21 @@ router.get("/provider/:name", async (req, res) => {
         ? "tv"
         : "movie";
 
-    // Fetch popular content for the media type
-    const popular = await tmdb(`/${mediaType}/popular`, {
+    // Fetch multiple pages for more content
+    const popularParams = {
       language: "en-US",
-      page: 1,
-    });
+    };
+    
+    const allItems = await fetchMultiplePages(mediaType, popularParams, 3);
 
-    const items = popular.results || [];
-
-    // Enrich and filter by provider
+    // Enrich and filter by provider (process more items)
     const enriched = await Promise.all(
-      items.slice(0, 50).map(async (it) => {
+      allItems.slice(0, 100).map(async (it, index) => {
+        // Add delay to avoid rate limiting
+        if (index > 0 && index % 10 === 0) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+        
         try {
           const details = await tmdb(`/${mediaType}/${it.id}`, {
             append_to_response: "watch/providers,credits",
@@ -369,7 +428,13 @@ router.get("/provider/:name", async (req, res) => {
           }
 
           const hasProvider = providerList.some(
-            (p) => p.toLowerCase() === rawName || PROVIDER_MAP[p.toLowerCase()] === providerId
+            (p) => {
+              const pLower = p.toLowerCase();
+              return pLower === rawName || 
+                     PROVIDER_MAP[pLower] === providerId ||
+                     pLower.includes(rawName) ||
+                     rawName.includes(pLower);
+            }
           );
 
           if (!hasProvider) return null;
@@ -385,6 +450,7 @@ router.get("/provider/:name", async (req, res) => {
             popularity: details.popularity || 0,
             runtime:
               details.runtime || details.episode_run_time?.[0] || null,
+            rating: details.vote_average || 0,
           };
         } catch (e) {
           return null;

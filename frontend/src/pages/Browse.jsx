@@ -28,6 +28,10 @@ export default function Browse() {
     "Hotstar",
     "Hulu",
     "HBO Max",
+    "Paramount+",
+    "Apple TV+",
+    "Peacock",
+    "Crunchyroll",
   ];
   const languages = ["English", "Hindi", "Marathi", "Spanish", "German"];
   const genres = [
@@ -57,6 +61,13 @@ export default function Browse() {
     if (!isAuthenticated) {
       setMessage("Please log in to get personalized recommendations.");
       navigate("/login");
+      return;
+    }
+
+    // Handle podcast
+    if (category === "podcast") {
+      setMessage("Podcasts coming soon to this platform! 🎙️");
+      setResults([]);
       return;
     }
 
@@ -117,21 +128,23 @@ export default function Browse() {
   const mostRecommended = results.slice(0, 6);
 
   return (
-    <div className="bg-black min-h-screen text-white">
+    <div className="bg-black dark:bg-gray-50 min-h-screen text-white dark:text-gray-900 transition-colors">
       <Navbar />
       <div className="p-8 grid grid-cols-1 lg:grid-cols-4 gap-8">
-        <aside className="lg:col-span-1 bg-zinc-900 rounded-lg p-6 shadow-lg">
-          <h2 className="text-xl font-semibold mb-6">Filter & Preferences</h2>
+        <aside className="lg:col-span-1 bg-zinc-900 dark:bg-white rounded-lg p-6 shadow-lg border border-zinc-800 dark:border-gray-200">
+          <h2 className="text-xl font-semibold mb-6 text-white dark:text-gray-900">
+            Filter & Preferences
+          </h2>
 
           <div className="space-y-4">
             <div>
-              <label className="block text-sm text-gray-300 mb-2">
+              <label className="block text-sm text-gray-300 dark:text-gray-700 mb-2">
                 Category
               </label>
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="w-full p-2 bg-zinc-800 rounded text-white"
+                className="w-full p-2 bg-zinc-800 dark:bg-gray-100 rounded text-white dark:text-gray-900 border border-zinc-700 dark:border-gray-300"
               >
                 <option value="movie">Movies</option>
                 <option value="series">Web Series</option>
@@ -141,13 +154,13 @@ export default function Browse() {
             </div>
 
             <div>
-              <label className="block text-sm text-gray-300 mb-2">
+              <label className="block text-sm text-gray-300 dark:text-gray-700 mb-2">
                 Language
               </label>
               <select
                 value={language}
                 onChange={(e) => setLanguage(e.target.value)}
-                className="w-full p-2 bg-zinc-800 rounded text-white"
+                className="w-full p-2 bg-zinc-800 dark:bg-gray-100 rounded text-white dark:text-gray-900 border border-zinc-700 dark:border-gray-300"
               >
                 {languages.map((l) => (
                   <option key={l} value={l.toLowerCase()}>
@@ -158,11 +171,13 @@ export default function Browse() {
             </div>
 
             <div>
-              <label className="block text-sm text-gray-300 mb-2">Genre</label>
+              <label className="block text-sm text-gray-300 dark:text-gray-700 mb-2">
+                Genre
+              </label>
               <select
                 value={genre}
                 onChange={(e) => setGenre(e.target.value)}
-                className="w-full p-2 bg-zinc-800 rounded text-white"
+                className="w-full p-2 bg-zinc-800 dark:bg-gray-100 rounded text-white dark:text-gray-900 border border-zinc-700 dark:border-gray-300"
               >
                 <option value="">Any Genre</option>
                 {genres.map((g) => (
@@ -174,7 +189,7 @@ export default function Browse() {
             </div>
 
             <div>
-              <label className="block text-sm text-gray-300 mb-2">
+              <label className="block text-sm text-gray-300 dark:text-gray-700 mb-2">
                 Provider (optional)
               </label>
               <div className="flex flex-wrap gap-2">
@@ -185,7 +200,7 @@ export default function Browse() {
                     className={`px-3 py-1 rounded-full text-sm transition-colors ${
                       provider === p
                         ? "bg-red-500 text-white"
-                        : "bg-zinc-800 text-gray-300 hover:bg-zinc-700"
+                        : "bg-zinc-800 dark:bg-gray-200 text-gray-300 dark:text-gray-700 hover:bg-zinc-700 dark:hover:bg-gray-300"
                     }`}
                   >
                     {p}
@@ -199,27 +214,33 @@ export default function Browse() {
               disabled={loading || !isAuthenticated}
               className={`w-full py-3 rounded font-semibold transition-colors ${
                 isAuthenticated && !loading
-                  ? "bg-red-500 hover:bg-red-600"
-                  : "bg-zinc-700 text-gray-400 cursor-not-allowed"
+                  ? "bg-red-500 hover:bg-red-600 text-white"
+                  : "bg-zinc-700 dark:bg-gray-300 text-gray-400 dark:text-gray-600 cursor-not-allowed"
               }`}
             >
               {loading ? "Finding picks..." : "Get Recommendations"}
             </button>
 
             {message && (
-              <div className="mt-4 p-3 text-sm text-yellow-300 bg-yellow-900/20 rounded">
+              <div className={`mt-4 p-3 text-sm rounded ${
+                message.includes("coming soon")
+                  ? "bg-blue-900/30 dark:bg-blue-100 border border-blue-700 dark:border-blue-300 text-blue-300 dark:text-blue-700"
+                  : "bg-yellow-900/20 dark:bg-yellow-100 border border-yellow-700 dark:border-yellow-300 text-yellow-300 dark:text-yellow-700"
+              }`}>
                 {message}
               </div>
             )}
 
             {mostRecommended.length > 0 && (
               <div className="mt-6">
-                <h3 className="text-md font-semibold mb-3">Most Recommended</h3>
+                <h3 className="text-md font-semibold mb-3 text-white dark:text-gray-900">
+                  Most Recommended
+                </h3>
                 <div className="space-y-3">
                   {mostRecommended.map((m) => (
                     <div
                       key={m.id}
-                      className="flex items-center gap-3 cursor-pointer hover:bg-zinc-800 p-2 rounded"
+                      className="flex items-center gap-3 cursor-pointer hover:bg-zinc-800 dark:hover:bg-gray-200 p-2 rounded"
                       onClick={() => setSelected(m)}
                     >
                       <img
@@ -232,10 +253,10 @@ export default function Browse() {
                         }}
                       />
                       <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium truncate">
+                        <div className="text-sm font-medium truncate text-white dark:text-gray-900">
                           {m.title}
                         </div>
-                        <div className="text-xs text-gray-400">
+                        <div className="text-xs text-gray-400 dark:text-gray-600">
                           {m.providers?.slice(0, 1).join(", ") || "N/A"}
                         </div>
                       </div>
@@ -249,14 +270,14 @@ export default function Browse() {
 
         <main className="lg:col-span-3">
           <div className="flex justify-between items-center mb-6">
-            <h1 className="text-3xl font-bold">
+            <h1 className="text-3xl font-bold text-white dark:text-gray-900">
               {category === "series"
                 ? "Web Series"
                 : category.charAt(0).toUpperCase() + category.slice(1)}{" "}
               Recommendations
             </h1>
             {results.length > 0 && (
-              <span className="text-gray-400">
+              <span className="text-gray-400 dark:text-gray-600">
                 {results.length} results found
               </span>
             )}
@@ -264,10 +285,10 @@ export default function Browse() {
 
           {results.length === 0 && !loading && (
             <div className="text-center py-12">
-              <p className="text-gray-400 text-lg mb-4">
+              <p className="text-gray-400 dark:text-gray-600 text-lg mb-4">
                 No recommendations yet.
               </p>
-              <p className="text-gray-500 text-sm">
+              <p className="text-gray-500 dark:text-gray-500 text-sm">
                 Choose your filters and click "Get Recommendations" to see
                 personalized suggestions.
               </p>
@@ -276,7 +297,7 @@ export default function Browse() {
 
           {loading && (
             <div className="text-center py-12">
-              <p className="text-gray-400">Loading recommendations...</p>
+              <p className="text-gray-400 dark:text-gray-600">Loading recommendations...</p>
             </div>
           )}
 

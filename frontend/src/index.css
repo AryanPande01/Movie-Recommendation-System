@@ -7,13 +7,26 @@
   body {
     margin: 0;
     padding: 0;
-    background-color: #000;
-    color: #fff;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
       "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
       sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  /* Dark mode (default) */
+  html.dark,
+  html.dark body {
+    background-color: #000;
+    color: #fff;
+  }
+
+  /* Light mode */
+  html:not(.dark),
+  html:not(.dark) body {
+    background-color: #f5f5f5;
+    color: #1a1a1a;
   }
 
   * {
@@ -25,22 +38,40 @@
     scroll-behavior: smooth;
   }
 
-  /* Custom scrollbar */
-  ::-webkit-scrollbar {
+  /* Custom scrollbar for dark mode */
+  html.dark ::-webkit-scrollbar {
     width: 10px;
   }
 
-  ::-webkit-scrollbar-track {
+  html.dark ::-webkit-scrollbar-track {
     background: #1a1a1a;
   }
 
-  ::-webkit-scrollbar-thumb {
+  html.dark ::-webkit-scrollbar-thumb {
     background: #4a4a4a;
     border-radius: 5px;
   }
 
-  ::-webkit-scrollbar-thumb:hover {
+  html.dark ::-webkit-scrollbar-thumb:hover {
     background: #5a5a5a;
+  }
+
+  /* Light mode scrollbar */
+  html:not(.dark) ::-webkit-scrollbar {
+    width: 10px;
+  }
+
+  html:not(.dark) ::-webkit-scrollbar-track {
+    background: #e5e5e5;
+  }
+
+  html:not(.dark) ::-webkit-scrollbar-thumb {
+    background: #9ca3af;
+    border-radius: 5px;
+  }
+
+  html:not(.dark) ::-webkit-scrollbar-thumb:hover {
+    background: #6b7280;
   }
 }
 

@@ -52,7 +52,7 @@ export default function Recommendations({ initialResults = [] }) {
   };
 
   return (
-    <div className="bg-black min-h-screen text-white">
+    <div className="bg-black dark:bg-gray-50 min-h-screen text-white dark:text-gray-900 transition-colors">
       <Navbar />
 
       <div className="p-8 max-w-7xl mx-auto">
@@ -61,7 +61,7 @@ export default function Recommendations({ initialResults = [] }) {
             Your Recommendations
           </h1>
           {results.length > 0 && (
-            <span className="text-gray-400">
+            <span className="text-gray-400 dark:text-gray-600">
               {results.length} recommendations
             </span>
           )}
@@ -69,16 +69,16 @@ export default function Recommendations({ initialResults = [] }) {
 
         {results.length === 0 && (
           <div className="text-center py-16">
-            <p className="text-gray-400 text-lg mb-4">
+            <p className="text-gray-400 dark:text-gray-600 text-lg mb-4">
               No recommendations found.
             </p>
-            <p className="text-gray-500 text-sm mb-6">
+            <p className="text-gray-500 dark:text-gray-500 text-sm mb-6">
               Please select your preferences to get personalized
               recommendations.
             </p>
             <button
               onClick={() => navigate("/preferences")}
-              className="bg-red-600 px-6 py-3 rounded-lg hover:bg-red-700 transition-colors"
+              className="bg-red-600 px-6 py-3 rounded-lg hover:bg-red-700 transition-colors text-white"
             >
               Go to Preferences
             </button>

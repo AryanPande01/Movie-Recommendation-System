@@ -1,53 +1,3 @@
-// import express from "express";
-// import cors from "cors";
-// import dotenv from "dotenv";
-
-// import { connectDB } from "./config/db.js";
-// import authRoutes from "./routes/authRoutes.js";
-// import movieRoutes from "./routes/movieRoutes.js";
-// import historyRoutes from "./routes/historyRoutes.js";
-
-// dotenv.config();
-
-// /* -------------------- CONNECT DB -------------------- */
-// connectDB();
-
-// /* -------------------- APP SETUP -------------------- */
-// const app = express();
-
-// /* -------------------- CORS (FINAL CORRECT VERSION) -------------------- */
-// app.use(
-//   cors({
-//     origin: [
-//       "http://localhost:5173",
-//       "https://movie-nine-nine-nine-pi.vercel.app",
-//     ],
-//     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-//     allowedHeaders: ["Content-Type", "Authorization"],
-//   })
-// );
-
-// /* 🔥 Handle preflight */
-// app.options("*", cors());
-
-// /* -------------------- MIDDLEWARE -------------------- */
-// app.use(express.json());
-
-// /* -------------------- ROUTES -------------------- */
-// app.use("/api/auth", authRoutes);
-// app.use("/api/movies", movieRoutes);
-// app.use("/api/history", historyRoutes);
-
-// /* -------------------- HEALTH CHECK -------------------- */
-// app.get("/", (req, res) => {
-//   res.json({ status: "API is running 🚀" });
-// });
-
-// /* -------------------- START SERVER -------------------- */
-// const PORT = process.env.PORT || 5001;
-// app.listen(PORT, () => {
-//   console.log(`✅ Backend running on port ${PORT}`);
-// });
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
@@ -59,36 +9,66 @@ import historyRoutes from "./routes/historyRoutes.js";
 
 dotenv.config();
 
+// Connect to database
 connectDB();
 
 const app = express();
 
-/* 🔥 CRITICAL FIX: allow all origins safely for now */
+// CORS Configuration - Allow all origins for production
 app.use(
   cors({
-    origin: true, // <-- IMPORTANT
+    origin: true, // Allow all origins
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
-/* 🔥 VERY IMPORTANT */
+// Handle preflight requests
 app.options("*", cors());
 
+// Middleware
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
+// Request logging middleware
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.path}`);
+  next();
+});
+
+// Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/movies", movieRoutes);
 app.use("/api/history", historyRoutes);
 
-/* Health check */
+// Health check endpoint
 app.get("/", (req, res) => {
-  res.json({ status: "API is running 🚀" });
+  res.json({ 
+    status: "API is running 🚀",
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || "development"
+  });
 });
 
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error("Error:", err);
+  res.status(err.status || 500).json({
+    message: err.message || "Internal server error",
+    error: process.env.NODE_ENV === 'development' ? err.stack : undefined
+  });
+});
+
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({ message: "Route not found" });
+});
+
+// Start server
 const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => {
   console.log(`✅ Backend running on port ${PORT}`);
+  console.log(`📍 Environment: ${process.env.NODE_ENV || "development"}`);
+  console.log(`🔗 Health check: http://localhost:${PORT}/`);
 });
-

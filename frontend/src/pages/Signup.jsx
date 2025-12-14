@@ -24,24 +24,44 @@ export default function Signup() {
       return;
     }
 
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError("Please enter a valid email address");
+      return;
+    }
+
     try {
       setLoading(true);
 
       const res = await api.post("/auth/signup", {
-        name,
-        email,
+        name: name.trim(),
+        email: email.trim().toLowerCase(),
         password,
       });
 
-      if (res.status === 201 || res.data.message) {
+      if (res.status === 201 || res.data?.message) {
         alert("Account created successfully! Please login.");
         navigate("/login");
+      } else {
+        setError("Signup failed. Please try again.");
       }
     } catch (err) {
       console.error("Signup error:", err);
-      setError(
-        err.response?.data?.message || "Signup failed. Please try again."
-      );
+      
+      // Better error messages
+      if (err.code === 'ECONNABORTED' || err.message === 'Network Error') {
+        setError("Cannot connect to server. Please check your connection and try again.");
+      } else if (err.response) {
+        // Server responded with error status
+        const message = err.response.data?.message || err.response.data?.error || "Signup failed";
+        setError(message);
+      } else if (err.request) {
+        // Request was made but no response
+        setError("Cannot reach server. Please check if the backend is running.");
+      } else {
+        setError("An unexpected error occurred. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
@@ -77,6 +97,8 @@ export default function Signup() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
+                disabled={loading}
+                autoComplete="name"
               />
             </div>
 
@@ -89,6 +111,8 @@ export default function Signup() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                disabled={loading}
+                autoComplete="email"
               />
             </div>
 
@@ -104,6 +128,8 @@ export default function Signup() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={6}
+                disabled={loading}
+                autoComplete="new-password"
               />
             </div>
 

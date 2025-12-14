@@ -18,25 +18,46 @@ export default function Login() {
       return;
     }
 
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError("Please enter a valid email address");
+      return;
+    }
+
     try {
       setLoading(true);
 
       const res = await api.post("/auth/login", {
-        email,
+        email: email.trim().toLowerCase(),
         password,
       });
 
-      if (res.data.token) {
+      if (res.data && res.data.token) {
         localStorage.setItem("token", res.data.token);
-        navigate("/dashboard");
+        // Small delay to ensure token is saved
+        setTimeout(() => {
+          navigate("/dashboard");
+        }, 100);
       } else {
-        setError("Login failed. Please try again.");
+        setError("Login failed. Invalid response from server.");
       }
     } catch (err) {
       console.error("Login error:", err);
-      setError(
-        err.response?.data?.message || "Login failed. Please check your credentials."
-      );
+      
+      // Better error messages
+      if (err.code === 'ECONNABORTED' || err.message === 'Network Error') {
+        setError("Cannot connect to server. Please check your connection and try again.");
+      } else if (err.response) {
+        // Server responded with error status
+        const message = err.response.data?.message || err.response.data?.error || "Login failed";
+        setError(message);
+      } else if (err.request) {
+        // Request was made but no response
+        setError("Cannot reach server. Please check if the backend is running.");
+      } else {
+        setError("An unexpected error occurred. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
@@ -72,6 +93,8 @@ export default function Login() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                disabled={loading}
+                autoComplete="email"
               />
             </div>
 
@@ -86,6 +109,8 @@ export default function Login() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                disabled={loading}
+                autoComplete="current-password"
               />
             </div>
 

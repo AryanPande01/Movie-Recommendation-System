@@ -111,43 +111,6 @@ Backend: Render
 
 Database: MongoDB Atlas (Cloud)
 
-📂 Project Structure
-movieverse/
-│
-├── backend/
-│   ├── config/
-│   │   └── db.js
-│   ├── models/
-│   │   ├── User.js
-│   │   └── History.js
-│   ├── routes/
-│   │   ├── authRoutes.js
-│   │   ├── movieRoutes.js
-│   │   └── historyRoutes.js
-│   ├── middleware/
-│   │   └── authMiddleware.js
-│   ├── server.js
-│   └── package.json
-│
-├── frontend/
-│   ├── src/
-│   │   ├── api/
-│   │   │   └── api.js
-│   │   ├── pages/
-│   │   │   ├── Login.jsx
-│   │   │   ├── Signup.jsx
-│   │   │   ├── Dashboard.jsx
-│   │   │   ├── Preferences.jsx
-│   │   │   ├── Recommendations.jsx
-│   │   │   ├── Browse.jsx
-│   │   │   ├── Provider.jsx
-│   │   │   └── History.jsx
-│   │   ├── components/
-│   │   └── main.jsx
-│   ├── index.html
-│   └── package.json
-│
-└── README.md
 
 ⚙️ Environment Variables
 Backend (Render)
@@ -218,8 +181,6 @@ Admin dashboard
 Dark/Light mode toggle
 
 📸 Screenshots
-
-(Add screenshots of UI here)
 
 👨‍💻 Author
 
